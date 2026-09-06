@@ -1,0 +1,14 @@
+# L'image ne contient que le point d'entree : tout le reste vient du depot
+# monte ou clone au demarrage. On exclut donc l'essentiel du contexte de build,
+# ce qui garde l'image petite et sa reconstruction rapide.
+.git
+data
+assets
+*.csv
+*.json
+*.md
+.env
+.env.*
+__pycache__
+*.py[cod]
+.DS_Store

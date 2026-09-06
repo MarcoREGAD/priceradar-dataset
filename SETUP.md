@@ -53,6 +53,81 @@ Three runs a day, in UTC:
 A run that finds nothing new exits without committing, so the history stays a
 record of price movements rather than a log of cron firings.
 
+## Running it in Docker
+
+The container is the same update as the scheduled workflow — both run
+`scripts/update.sh`, so there is one implementation and no risk of the two
+drifting apart.
+
+The image holds only the entrypoint. Scripts, schema and data all come from the
+repository mounted at `/repo`, which means the container always runs the version
+that ships with the data it is updating.
+
+```bash
+cp .env.example .env          # then fill in the two values
+docker compose run --rm update
+```
+
+That regenerates every file and **publishes nothing**. Inspect the diff, commit
+yourself if it suits you.
+
+To let the container commit and push:
+
+```bash
+docker compose run --rm publish
+```
+
+`PUSH` defaults to off on purpose: running a container should never publish to a
+public repository by surprise.
+
+Two more services:
+
+```bash
+docker compose run --rm validate                      # check the files, touch nothing
+docker compose run --rm update python3 scripts/render_chart.py   # any single script
+```
+
+### On a server, without a checkout
+
+The `serveur` profile clones the repository itself, updates it, pushes, and
+exits — nothing to prepare on the host:
+
+```bash
+DATASET_REPO_URL=https://github.com/OWNER/priceradar-dataset.git \
+GITHUB_TOKEN=ghp_… \
+docker compose --profile serveur run --rm standalone
+```
+
+The token is passed through an HTTP header rather than written into the remote
+URL, so it never lands in `.git/config`.
+
+A daily cron entry then looks like:
+
+```cron
+20 8,16 * * *  cd /srv/priceradar-dataset && docker compose --profile serveur run --rm standalone >> /var/log/priceradar-dataset.log 2>&1
+```
+
+### File ownership on Linux
+
+The compose file runs the container as `${UID}:${GID}` so that regenerated
+files belong to you rather than to the container's internal user. Those two
+variables are not exported by default:
+
+```bash
+echo "UID=$(id -u)" >> .env
+echo "GID=$(id -g)" >> .env
+```
+
+On macOS this is unnecessary — Docker Desktop maps ownership on its own.
+
+### Choose one trigger, not both
+
+The GitHub workflow and the container do exactly the same thing. Running both
+means two schedules racing for the same branch: the second push is rejected and
+the run fails. Pick whichever fits — the workflow needs no infrastructure, the
+container keeps everything on machines you own — and disable the other one.
+Disabling the workflow: **Actions → Update dataset → ⋯ → Disable workflow**.
+
 ## Running the scripts locally
 
 ```bash

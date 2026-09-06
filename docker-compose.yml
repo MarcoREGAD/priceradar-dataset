@@ -1,0 +1,78 @@
+# Mise a jour du jeu de donnees, en conteneur.
+#
+#   docker compose run --rm update      regenere les fichiers, ne publie rien
+#   docker compose run --rm publish     regenere, commit et pousse
+#   docker compose run --rm validate    verifie les fichiers deja presents
+#
+# Les trois services partagent la meme image et le meme code : seule la
+# variable PUSH change. Le defaut ne publie pas — lancer un conteneur ne doit
+# jamais pousser sur un depot public par surprise.
+#
+# Le nom de projet est fixe : sans lui, Docker le deduit du nom du dossier, ce
+# qui donne des conteneurs ambigus sur une machine qui en heberge plusieurs.
+name: priceradar-dataset
+
+x-dataset: &dataset
+  build: .
+  image: priceradar-dataset:latest
+  restart: "no"
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    SUPABASE_URL: ${SUPABASE_URL:-}
+    SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+  # Le depot de l'hote est monte : le conteneur travaille sur les fichiers que
+  # vous voyez, et l'historique git reste le votre.
+  volumes:
+    - .:/repo
+  # Les fichiers ecrits doivent appartenir a l'utilisateur de l'hote. Sans
+  # cela, sur Linux, ils reviennent avec l'UID interne du conteneur et git
+  # devient inutilisable hors conteneur. `id -u` / `id -g` renseignent ces
+  # variables ; a defaut, 1000 couvre le cas courant.
+  user: "${UID:-1000}:${GID:-1000}"
+  mem_limit: 256m
+  cpus: 0.5
+
+services:
+  # Regeneration seule. C'est le mode de travail : on inspecte le diff, on
+  # commite soi-meme si le resultat convient.
+  update:
+    <<: *dataset
+
+  # Regeneration, commit et push. A utiliser sur un serveur, ou quand on est
+  # sur de son coup.
+  publish:
+    <<: *dataset
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+      PUSH: "true"
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-priceradar-bot}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-}
+
+  # Verification seule, sans toucher a la base ni aux fichiers. Pratique apres
+  # une modification manuelle.
+  validate:
+    <<: *dataset
+    command: ["python3", "scripts/validate_dataset.py"]
+
+  # Variante serveur : le conteneur clone le depot lui-meme, met a jour, pousse,
+  # puis disparait. Aucun depot a preparer sur la machine hote.
+  #
+  #   DATASET_REPO_URL=https://github.com/OWNER/priceradar-dataset.git \
+  #   GITHUB_TOKEN=ghp_… \
+  #   docker compose --profile serveur run --rm standalone
+  standalone:
+    <<: *dataset
+    volumes: []
+    user: "10001:10001"
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+      PUSH: "true"
+      DATASET_REPO_URL: ${DATASET_REPO_URL:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-priceradar-bot}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-}
+    profiles: ["serveur"]
