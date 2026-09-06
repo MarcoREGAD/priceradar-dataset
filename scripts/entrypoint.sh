@@ -2,80 +2,88 @@
 #
 # Point d'entree du conteneur.
 #
-# Il prepare le depot puis delegue a `update.sh`, qui porte toute la logique
-# metier et est aussi ce qu'appelle le workflow GitHub. Ce fichier ne fait donc
-# qu'une chose : s'assurer qu'il existe un depot git utilisable dans /repo.
+# Il prepare le depot dans /repo, puis passe la main. Toute la logique metier
+# vit dans les scripts du depot, jamais dans l'image : le conteneur execute
+# donc forcement la version qui accompagne les donnees qu'il met a jour.
 #
-# Deux situations :
+# Deux situations, distinguees automatiquement :
 #
-#   1. **Depot monte** (`-v $PWD:/repo`). On travaille en place. C'est le mode
-#      de developpement : on voit les fichiers changer sous ses yeux.
-#   2. **Depot clone** (`DATASET_REPO_URL` fourni, /repo vide). Le conteneur
-#      clone, met a jour, pousse. C'est le mode serveur : rien a preparer sur
-#      la machine hote, un `docker run` suffit.
+#   1. **Volume vide + DATASET_REPO_URL** — le conteneur clone. C'est le mode
+#      serveur : rien a preparer sur la machine hote.
+#   2. **Depot deja present** — soit le volume d'un demarrage precedent, soit
+#      un depot monte depuis l'hote pour travailler en local.
 #
 set -euo pipefail
 
 REPO=/repo
 
-log() { printf '%s\n' "$*"; }
+log() { printf '[%s] %s\n' "$(date -u '+%Y-%m-%d %H:%M:%S')Z" "$*"; }
 
+# ---------------------------------------------------------------------------
+# Authentification git
+# ---------------------------------------------------------------------------
+# Le jeton passe par les variables GIT_CONFIG_* plutot que par l'URL du remote
+# ou par `git config`. C'est la seule facon de l'utiliser sans qu'il soit ecrit
+# quelque part : ni dans .git/config, ni dans le volume, ni dans l'historique
+# du shell. Il vit le temps du processus, et disparait avec lui.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  basic="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
+  export GIT_CONFIG_COUNT=1
+  export GIT_CONFIG_KEY_0="http.extraheader"
+  export GIT_CONFIG_VALUE_0="Authorization: Basic $basic"
+  unset basic
+fi
+
+# ---------------------------------------------------------------------------
+# Preparation du depot
+# ---------------------------------------------------------------------------
 if [ -d "$REPO/.git" ]; then
-  log "==> Depot monte detecte dans $REPO"
-  # Un depot monte peut etre en retard sur la branche distante. On le signale
-  # sans decider a la place de l'utilisateur : un `git pull` automatique
-  # ecraserait un travail local en cours.
-  if [ "${PUSH:-false}" = "true" ] && git -C "$REPO" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
-    git -C "$REPO" fetch --quiet || true
-    behind="$(git -C "$REPO" rev-list --count 'HEAD..@{upstream}' 2>/dev/null || echo 0)"
-    if [ "$behind" != "0" ]; then
-      log "!! Le depot local est en retard de $behind commit(s) sur la branche distante."
-      log "   Faites 'git pull --rebase' avant de publier, sinon le push sera refuse."
-      exit 1
-    fi
+  cd "$REPO"
+  log "Depot present dans $REPO"
+
+  # Sur un serveur, le clone appartient au conteneur : le remettre a niveau
+  # avant d'ecrire evite un push refuse au premier decalage. En local, on ne
+  # touche a rien — un pull automatique ecraserait un travail en cours.
+  if [ "${AUTO_PULL:-${DATASET_REPO_URL:+true}}" = "true" ] \
+     && git rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
+    log "Synchronisation avec la branche distante"
+    git pull --rebase --autostash --quiet || log "!! Echec du pull, on continue avec l'etat local"
   fi
 
 elif [ -n "${DATASET_REPO_URL:-}" ]; then
-  log "==> Clonage de $DATASET_REPO_URL"
-  # Le jeton n'est jamais ecrit sur disque ni dans l'URL du remote : il est
-  # injecte le temps de la commande via un en-tete. Sans cette precaution il
-  # finirait en clair dans .git/config, donc dans l'image ou le volume.
-  auth=()
-  if [ -n "${GITHUB_TOKEN:-}" ]; then
-    basic="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')"
-    auth=(-c "http.extraheader=Authorization: Basic $basic")
-  fi
-  git "${auth[@]}" clone --quiet "$DATASET_REPO_URL" "$REPO"
+  log "Clonage de $DATASET_REPO_URL"
+  git clone --quiet "$DATASET_REPO_URL" "$REPO"
   cd "$REPO"
-  if [ ${#auth[@]} -gt 0 ]; then
-    git config "http.extraheader" "Authorization: Basic $basic"
-  fi
 
 else
   log "Aucun depot dans $REPO et DATASET_REPO_URL n'est pas defini."
-  log
-  log "Montez le depot :"
-  log "    docker run --rm -v \"\$PWD:/repo\" --env-file .env priceradar-dataset"
-  log "ou laissez le conteneur le cloner :"
-  log "    docker run --rm -e DATASET_REPO_URL=… -e GITHUB_TOKEN=… priceradar-dataset"
+  log ""
+  log "Sur un serveur, laissez le conteneur cloner :"
+  log "    -e DATASET_REPO_URL=https://github.com/OWNER/priceradar-dataset.git"
+  log "En local, montez le depot :"
+  log "    -v \"\$PWD:/repo\""
   exit 1
 fi
 
-cd "$REPO"
-
-# Les scripts viennent du depot, jamais de l'image : le conteneur execute donc
-# la version qui accompagne les donnees qu'il met a jour.
 if [ ! -x "$REPO/scripts/update.sh" ]; then
   log "Le depot dans $REPO ne contient pas scripts/update.sh executable."
-  log "Verifiez que vous montez bien la racine du depot priceradar-dataset."
+  log "Verifiez DATASET_REPO_URL, ou que vous montez bien la racine du depot."
   exit 1
 fi
 
-# Les arguments passes au conteneur sont transmis tels quels, ce qui permet de
-# lancer un script isole sans reconstruire l'image :
-#   docker compose run --rm update python3 scripts/validate_dataset.py
+# Identite des commits, fixee ici pour que le clone du serveur n'ait pas besoin
+# d'une configuration git prealable.
+git config user.name "${GIT_AUTHOR_NAME:-priceradar-bot}"
+git config user.email "${GIT_AUTHOR_EMAIL:-priceradar-bot@users.noreply.github.com}"
+
+# ---------------------------------------------------------------------------
+# Execution
+# ---------------------------------------------------------------------------
+# Une commande explicite l'emporte : c'est ce qui permet de lancer une seule
+# operation sans reconstruire l'image.
+#   docker compose run --rm dataset python3 scripts/validate_dataset.py
 if [ "$#" -gt 0 ]; then
   exec "$@"
 fi
 
-exec "$REPO/scripts/update.sh"
+exec python3 "$REPO/scripts/scheduler.py"

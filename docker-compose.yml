@@ -1,78 +1,116 @@
-# Mise a jour du jeu de donnees, en conteneur.
+# Mise a jour automatique du jeu de donnees.
 #
-#   docker compose run --rm update      regenere les fichiers, ne publie rien
-#   docker compose run --rm publish     regenere, commit et pousse
-#   docker compose run --rm validate    verifie les fichiers deja presents
+# Un seul service a deployer. Il tourne en continu, se reveille a ses creneaux,
+# regenere les CSV depuis la base, valide le resultat, et pousse sur le depot
+# git — mais seulement si une observation est nouvelle.
 #
-# Les trois services partagent la meme image et le meme code : seule la
-# variable PUSH change. Le defaut ne publie pas — lancer un conteneur ne doit
-# jamais pousser sur un depot public par surprise.
+#   docker compose up -d          demarre l'automatisation
+#   docker compose logs -f        suit ce qu'elle fait
 #
-# Le nom de projet est fixe : sans lui, Docker le deduit du nom du dossier, ce
-# qui donne des conteneurs ambigus sur une machine qui en heberge plusieurs.
+# Tout est dans les variables d'environnement : voir .env.example. Aucune tache
+# planifiee a configurer cote hebergeur, aucun cron sur la machine hote.
 name: priceradar-dataset
 
-x-dataset: &dataset
-  build: .
-  image: priceradar-dataset:latest
-  restart: "no"
-  env_file:
-    - path: .env
-      required: false
-  environment:
-    SUPABASE_URL: ${SUPABASE_URL:-}
-    SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
-  # Le depot de l'hote est monte : le conteneur travaille sur les fichiers que
-  # vous voyez, et l'historique git reste le votre.
-  volumes:
-    - .:/repo
-  # Les fichiers ecrits doivent appartenir a l'utilisateur de l'hote. Sans
-  # cela, sur Linux, ils reviennent avec l'UID interne du conteneur et git
-  # devient inutilisable hors conteneur. `id -u` / `id -g` renseignent ces
-  # variables ; a defaut, 1000 couvre le cas courant.
-  user: "${UID:-1000}:${GID:-1000}"
-  mem_limit: 256m
-  cpus: 0.5
-
 services:
-  # Regeneration seule. C'est le mode de travail : on inspecte le diff, on
-  # commite soi-meme si le resultat convient.
-  update:
-    <<: *dataset
+  dataset:
+    build: .
+    image: priceradar-dataset:latest
+    restart: unless-stopped
 
-  # Regeneration, commit et push. A utiliser sur un serveur, ou quand on est
-  # sur de son coup.
-  publish:
-    <<: *dataset
     environment:
-      SUPABASE_URL: ${SUPABASE_URL:-}
-      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
-      PUSH: "true"
+      # --- Source des donnees (obligatoire) ---------------------------------
+      # Une variable manquante est signalee au demarrage par le script qui en a
+      # besoin, avec un message explicite : on evite volontairement la syntaxe
+      # `${VAR:?...}`, que certains parseurs de compose refusent avant meme
+      # d'avoir demarre le conteneur.
+      # Les deux valeurs que le site public expose deja dans ses pages. La cle
+      # anon n'ouvre que l'acces en lecture dont le site se sert lui-meme.
+      # Ne jamais mettre ici la cle service_role.
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+
+      # --- Depot a mettre a jour (obligatoire) ------------------------------
+      # Le conteneur clone ce depot au premier demarrage, puis le garde dans
+      # son volume. Le jeton a besoin de la portee `repo` (ou `contents: write`
+      # pour un jeton fin).
+      DATASET_REPO_URL: ${DATASET_REPO_URL}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+
+      # --- Comportement (optionnel) -----------------------------------------
+      # Creneaux UTC. Le collecteur tourne vers 07:00 et 15:00 : ces horaires
+      # passent peu apres, et celui de minuit rattrape une collecte en retard.
+      UPDATE_TIMES: ${UPDATE_TIMES:-08:20,16:20,00:30}
+      # Une mise a jour des le demarrage, pour verifier le deploiement sans
+      # attendre le premier creneau.
+      RUN_ON_START: ${RUN_ON_START:-true}
+      # Publication. Le passer a "false" fait tourner le service a blanc :
+      # il regenere et valide, sans jamais rien pousser.
+      PUSH: ${PUSH:-true}
       GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-priceradar-bot}
-      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-priceradar-bot@users.noreply.github.com}
 
-  # Verification seule, sans toucher a la base ni aux fichiers. Pratique apres
-  # une modification manuelle.
-  validate:
-    <<: *dataset
-    command: ["python3", "scripts/validate_dataset.py"]
+    # Le clone survit aux redemarrages et aux redeploiements. Sans ce volume,
+    # chaque redemarrage reclonerait l'historique complet du depot.
+    volumes:
+      - dataset-repo:/repo
 
-  # Variante serveur : le conteneur clone le depot lui-meme, met a jour, pousse,
-  # puis disparait. Aucun depot a preparer sur la machine hote.
+    # Le service dort la quasi-totalite du temps et ne manipule que quelques
+    # milliers de lignes de CSV.
+    mem_limit: 512m
+    cpus: 0.5
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # L'ordonnanceur touche un fichier a chaque reveil. Le conteneur est donc
+    # declare malade si la boucle se bloque, pas seulement si le processus
+    # meurt — ce qu'un test de presence ne verrait pas. Visible dans Coolify
+    # sans avoir a lire les journaux.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - test -f /repo/schema.json && test -n "$$(find /tmp/scheduler-heartbeat -newermt '-5 minutes' 2>/dev/null)"
+      interval: 5m
+      timeout: 10s
+      start_period: 2m
+      retries: 3
+
+  # -------------------------------------------------------------------------
+  # Travail local, hors deploiement
+  # -------------------------------------------------------------------------
+  # Meme image, mais le depot du poste est monte a la place du volume : on
+  # travaille sur les fichiers qu'on a sous les yeux. Sous un profil, donc
+  # jamais demarre par `docker compose up` — la production n'a qu'un service.
   #
-  #   DATASET_REPO_URL=https://github.com/OWNER/priceradar-dataset.git \
-  #   GITHUB_TOKEN=ghp_… \
-  #   docker compose --profile serveur run --rm standalone
-  standalone:
-    <<: *dataset
-    volumes: []
-    user: "10001:10001"
+  #   docker compose --profile local run --rm local
+  #   docker compose --profile local run --rm local python3 scripts/validate_dataset.py
+  local:
+    build: .
+    image: priceradar-dataset:latest
+    profiles: ["local"]
+    restart: "no"
+    env_file:
+      - path: .env
+        required: false
     environment:
-      SUPABASE_URL: ${SUPABASE_URL:-}
-      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
-      PUSH: "true"
-      DATASET_REPO_URL: ${DATASET_REPO_URL:-}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-priceradar-bot}
-      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-}
-    profiles: ["serveur"]
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      # Rien n'est pousse depuis un poste de travail sauf demande explicite,
+      # et aucun pull automatique : un travail en cours ne doit pas etre
+      # ecrase par le conteneur.
+      PUSH: ${PUSH:-false}
+      AUTO_PULL: "false"
+      RUN_ON_START: "true"
+    volumes:
+      - .:/repo
+    # Les fichiers ecrits doivent appartenir a l'utilisateur de l'hote, sinon
+    # ils reviennent avec l'UID interne et git devient inutilisable dehors.
+    # Sous Linux : `echo "UID=$(id -u)" >> .env` et de meme pour GID.
+    user: "${UID:-1000}:${GID:-1000}"
+    command: ["bash", "scripts/update.sh"]
+
+volumes:
+  dataset-repo:
