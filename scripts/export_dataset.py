@@ -163,7 +163,10 @@ def write_datapackage(files: list[tuple[str, str]], stats: dict) -> None:
     latest_observation = max(
         detail["last_observation"] for detail in stats["markets"].values()
     )
-    schema = json.loads((REPO / "schema.json").read_text(encoding="utf-8"))
+    # The schema is referenced, not inlined. Inlining it repeated 60 lines per
+    # resource: the descriptor reached 26 kB for eight files and would have
+    # grown by one copy every month, with every copy free to drift from
+    # `schema.json`. One reference cannot drift.
     resources = [
         {
             "name": "latest",
@@ -173,7 +176,7 @@ def write_datapackage(files: list[tuple[str, str]], stats: dict) -> None:
             "format": "csv",
             "mediatype": "text/csv",
             "encoding": "utf-8",
-            "schema": schema,
+            "schema": "schema.json",
         }
     ]
     for market, month in files:
@@ -186,7 +189,7 @@ def write_datapackage(files: list[tuple[str, str]], stats: dict) -> None:
                 "format": "csv",
                 "mediatype": "text/csv",
                 "encoding": "utf-8",
-                "schema": schema,
+                "schema": "schema.json",
             }
         )
 
