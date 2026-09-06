@@ -1,0 +1,64 @@
+name: Update dataset
+
+# The collector runs twice a day, around 07:00 and 15:00 UTC. These two runs
+# start shortly after, so a commit lands once the new observations exist.
+# A third run is scheduled just after midnight so the day boundary is never
+# missed when a collection is late.
+on:
+  schedule:
+    - cron: "20 8 * * *"
+    - cron: "20 16 * * *"
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+
+# Only the dataset commit needs write access; nothing else is granted.
+permissions:
+  contents: write
+
+concurrency:
+  group: update-dataset
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Export observations
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python scripts/export_dataset.py
+
+      - name: Redraw the README chart
+        run: python scripts/render_chart.py
+
+      - name: Check the files against the published schema
+        run: python scripts/validate_dataset.py
+
+      - name: Commit when an observation is new
+        run: |
+          set -euo pipefail
+
+          # `stats.json` carries a generation timestamp that changes on every
+          # run. Staging it alone would produce a commit a day even when no
+          # price moved, so the decision to commit is made on the data only.
+          git add data latest.csv datapackage.json assets/price-history-fr.svg
+          if git diff --cached --quiet; then
+            echo "No new observation — nothing to commit."
+            exit 0
+          fi
+
+          git add stats.json
+          observations=$(python -c "import json;print(json.load(open('stats.json'))['observations'])")
+          git config user.name "priceradar-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "data: update observations ($observations total)"
+          git push

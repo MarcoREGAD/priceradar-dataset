@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: Refurbished iPhone prices dataset
+message: >-
+  If you use this dataset, please cite it using the metadata below.
+type: dataset
+authors:
+  - name: Price Radar
+    website: https://www.priceradar.live
+abstract: >-
+  Entry prices of refurbished iPhone models, observed twice a day on the
+  French, American, German and Spanish Back Market storefronts and kept as a
+  dated time series. Collection began on 13 August 2026.
+keywords:
+  - refurbished
+  - iphone
+  - smartphone
+  - price tracking
+  - time series
+  - e-commerce
+  - consumer electronics
+  - open data
+license: CC-BY-4.0
+url: https://www.priceradar.live
+date-released: 2026-09-06

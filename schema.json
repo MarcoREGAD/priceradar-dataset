@@ -1,0 +1,57 @@
+{
+  "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+  "fields": [
+    {
+      "name": "observed_at",
+      "type": "datetime",
+      "format": "%Y-%m-%dT%H:%M:%SZ",
+      "title": "Observation timestamp",
+      "description": "When the price was read, in UTC with second precision.",
+      "constraints": { "required": true }
+    },
+    {
+      "name": "market",
+      "type": "string",
+      "title": "Market",
+      "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+      "constraints": { "required": true, "enum": ["FR", "US", "DE", "ES"] }
+    },
+    {
+      "name": "model_id",
+      "type": "string",
+      "title": "Model identifier",
+      "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+      "constraints": { "required": true, "pattern": "^[a-z0-9-]+$" }
+    },
+    {
+      "name": "model",
+      "type": "string",
+      "title": "Model name",
+      "description": "Model name as displayed by the source.",
+      "constraints": { "required": true }
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "title": "Entry price",
+      "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+      "constraints": { "required": true, "minimum": 1 }
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "title": "Currency",
+      "description": "ISO 4217 code, always the currency of the market.",
+      "constraints": { "required": true, "enum": ["EUR", "USD"] }
+    },
+    {
+      "name": "reference_new_price",
+      "type": "number",
+      "title": "Reference new price",
+      "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+      "constraints": { "required": false, "minimum": 1 }
+    }
+  ],
+  "primaryKey": ["observed_at", "market", "model_id"],
+  "missingValues": [""]
+}

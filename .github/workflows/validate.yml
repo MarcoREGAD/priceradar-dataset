@@ -1,0 +1,29 @@
+name: Validate dataset
+
+# Runs on anything that touches the data or its description, so a manual edit
+# or an outside contribution cannot break the published schema unnoticed.
+on:
+  push:
+    paths:
+      - "data/**"
+      - "latest.csv"
+      - "schema.json"
+      - "datapackage.json"
+      - "stats.json"
+      - "scripts/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/validate_dataset.py

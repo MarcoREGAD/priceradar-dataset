@@ -1,0 +1,16 @@
+observed_at,market,model_id,model,price,currency,reference_new_price
+2026-08-30T23:52:08Z,DE,iphone-13,iPhone 13,287.00,EUR,729.00
+2026-08-30T23:52:08Z,DE,iphone-13-mini,iPhone 13 mini,271.00,EUR,799.00
+2026-08-30T23:52:08Z,DE,iphone-14,iPhone 14,321.00,EUR,729.00
+2026-08-30T23:52:08Z,DE,iphone-14-pro,iPhone 14 Pro,483.99,EUR,1299.00
+2026-08-30T23:52:08Z,DE,iphone-15,iPhone 15,397.00,EUR,849.00
+2026-08-30T23:52:08Z,DE,iphone-15-plus,iPhone 15 Plus,497.00,EUR,949.00
+2026-08-30T23:52:08Z,DE,iphone-15-pro,iPhone 15 Pro,594.00,EUR,1199.00
+2026-08-30T23:52:08Z,DE,iphone-15-pro-max,iPhone 15 Pro Max,646.00,EUR,1449.00
+2026-08-30T23:52:08Z,DE,iphone-16,iPhone 16,592.00,EUR,849.00
+2026-08-30T23:52:08Z,DE,iphone-16-plus,iPhone 16 Plus,559.00,EUR,949.00
+2026-08-30T23:52:08Z,DE,iphone-16-pro,iPhone 16 Pro,657.00,EUR,1199.00
+2026-08-30T23:52:08Z,DE,iphone-16-pro-max,iPhone 16 Pro Max,829.00,EUR,1449.00
+2026-08-30T23:52:08Z,DE,iphone-16e,iPhone 16e,401.00,EUR,699.00
+2026-08-30T23:52:08Z,DE,iphone-17,iPhone 17,740.00,EUR,949.00
+2026-08-30T23:52:08Z,DE,iphone-17-pro,iPhone 17 Pro,969.00,EUR,1299.00

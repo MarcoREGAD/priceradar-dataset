@@ -1,0 +1,827 @@
+{
+  "$schema": "https://specs.frictionlessdata.io/schemas/data-package.json",
+  "profile": "tabular-data-package",
+  "name": "refurbished-iphone-prices",
+  "title": "Refurbished iPhone prices",
+  "description": "Entry prices of refurbished iPhone models, observed twice a day on the French, American, German and Spanish Back Market storefronts and kept as a dated time series.",
+  "homepage": "https://www.priceradar.live",
+  "version": "2026-09-06",
+  "created": "2026-09-06T14:41:50Z",
+  "licenses": [
+    {
+      "name": "CC-BY-4.0",
+      "title": "Creative Commons Attribution 4.0 International",
+      "path": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ],
+  "contributors": [
+    {
+      "title": "Price Radar",
+      "path": "https://www.priceradar.live",
+      "role": "author"
+    }
+  ],
+  "keywords": [
+    "refurbished",
+    "iphone",
+    "smartphone",
+    "price tracking",
+    "time series",
+    "e-commerce",
+    "consumer electronics"
+  ],
+  "resources": [
+    {
+      "name": "latest",
+      "path": "latest.csv",
+      "title": "Most recent observation of each model, per market",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "de-2026-08",
+      "path": "data/de/2026-08.csv",
+      "title": "DE observations, 2026-08",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "de-2026-09",
+      "path": "data/de/2026-09.csv",
+      "title": "DE observations, 2026-09",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "es-2026-09",
+      "path": "data/es/2026-09.csv",
+      "title": "ES observations, 2026-09",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "fr-2026-08",
+      "path": "data/fr/2026-08.csv",
+      "title": "FR observations, 2026-08",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "fr-2026-09",
+      "path": "data/fr/2026-09.csv",
+      "title": "FR observations, 2026-09",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "us-2026-08",
+      "path": "data/us/2026-08.csv",
+      "title": "US observations, 2026-08",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "us-2026-09",
+      "path": "data/us/2026-09.csv",
+      "title": "US observations, 2026-09",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": {
+        "$schema": "https://specs.frictionlessdata.io/schemas/table-schema.json",
+        "fields": [
+          {
+            "name": "observed_at",
+            "type": "datetime",
+            "format": "%Y-%m-%dT%H:%M:%SZ",
+            "title": "Observation timestamp",
+            "description": "When the price was read, in UTC with second precision.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "market",
+            "type": "string",
+            "title": "Market",
+            "description": "Storefront the price was read on. Markets are independent series and are never converted into one another.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "FR",
+                "US",
+                "DE",
+                "ES"
+              ]
+            }
+          },
+          {
+            "name": "model_id",
+            "type": "string",
+            "title": "Model identifier",
+            "description": "Stable slug for the model, identical across markets, suitable as a join key.",
+            "constraints": {
+              "required": true,
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "model",
+            "type": "string",
+            "title": "Model name",
+            "description": "Model name as displayed by the source.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": "Entry price",
+            "description": "Cheapest offer visible for this model at that moment, in the market's own currency. Not the price of a specific unit: storage and cosmetic grade can raise the amount at checkout.",
+            "constraints": {
+              "required": true,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "title": "Currency",
+            "description": "ISO 4217 code, always the currency of the market.",
+            "constraints": {
+              "required": true,
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            }
+          },
+          {
+            "name": "reference_new_price",
+            "type": "number",
+            "title": "Reference new price",
+            "description": "New price for the same model as displayed by the source. Empty when the model is no longer sold new. Read, never estimated.",
+            "constraints": {
+              "required": false,
+              "minimum": 1
+            }
+          }
+        ],
+        "primaryKey": [
+          "observed_at",
+          "market",
+          "model_id"
+        ],
+        "missingValues": [
+          ""
+        ]
+      }
+    }
+  ]
+}
