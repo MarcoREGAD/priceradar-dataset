@@ -154,7 +154,15 @@ def write_datapackage(files: list[tuple[str, str]], stats: dict) -> None:
     It is generated rather than hand-written so that a new month, or a new
     market, cannot silently fall out of the description. Data catalogues and
     validators read this file first.
+
+    `version` and `created` follow the **data**, not the moment the export ran.
+    Stamping them with the run time would change this file on every execution
+    and produce an empty commit a day, drowning the real price movements in
+    noise. A data package version should describe the data anyway.
     """
+    latest_observation = max(
+        detail["last_observation"] for detail in stats["markets"].values()
+    )
     schema = json.loads((REPO / "schema.json").read_text(encoding="utf-8"))
     resources = [
         {
@@ -193,8 +201,8 @@ def write_datapackage(files: list[tuple[str, str]], stats: dict) -> None:
             "and kept as a dated time series."
         ),
         "homepage": "https://www.priceradar.live",
-        "version": stats["generated_at"][:10],
-        "created": stats["generated_at"],
+        "version": latest_observation[:10],
+        "created": latest_observation,
         "licenses": [
             {
                 "name": "CC-BY-4.0",
