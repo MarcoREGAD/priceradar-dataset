@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-07T00:30:01Z",
-  "observations": 1605,
+  "generated_at": "2026-09-07T08:20:01Z",
+  "observations": 1620,
   "markets": {
     "FR": {
       "observations": 1080,
@@ -10,10 +10,10 @@
       "currency": "EUR"
     },
     "US": {
-      "observations": 315,
+      "observations": 330,
       "models": 15,
       "first_observation": "2026-08-18T22:48:50Z",
-      "last_observation": "2026-09-06T09:50:39Z",
+      "last_observation": "2026-09-07T01:24:33Z",
       "currency": "USD"
     },
     "DE": {
