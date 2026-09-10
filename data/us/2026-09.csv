@@ -224,3 +224,18 @@ observed_at,market,model_id,model,price,currency,reference_new_price
 2026-09-09T14:20:23Z,US,iphone-17,iPhone 17,828.98,USD,
 2026-09-09T14:20:23Z,US,iphone-17-pro,iPhone 17 Pro,956.00,USD,1099.00
 2026-09-09T14:20:23Z,US,iphone-17-pro-max,iPhone 17 Pro Max,1160.00,USD,1199.00
+2026-09-10T02:51:19Z,US,iphone-13,iPhone 13,226.00,USD,629.00
+2026-09-10T02:51:19Z,US,iphone-14,iPhone 14,264.00,USD,629.00
+2026-09-10T02:51:19Z,US,iphone-14-plus,iPhone 14 Plus,316.22,USD,729.00
+2026-09-10T02:51:19Z,US,iphone-15,iPhone 15,386.00,USD,729.00
+2026-09-10T02:51:19Z,US,iphone-15-plus,iPhone 15 Plus,400.00,USD,829.00
+2026-09-10T02:51:19Z,US,iphone-15-pro,iPhone 15 Pro,540.00,USD,1099.00
+2026-09-10T02:51:19Z,US,iphone-15-pro-max,iPhone 15 Pro Max,620.00,USD,1199.00
+2026-09-10T02:51:19Z,US,iphone-16,iPhone 16,530.00,USD,729.00
+2026-09-10T02:51:19Z,US,iphone-16-plus,iPhone 16 Plus,589.62,USD,829.00
+2026-09-10T02:51:19Z,US,iphone-16-pro,iPhone 16 Pro,677.00,USD,999.00
+2026-09-10T02:51:19Z,US,iphone-16-pro-max,iPhone 16 Pro Max,809.00,USD,1199.00
+2026-09-10T02:51:19Z,US,iphone-16e,iPhone 16e,358.00,USD,599.00
+2026-09-10T02:51:19Z,US,iphone-17,iPhone 17,799.00,USD,829.00
+2026-09-10T02:51:19Z,US,iphone-17-pro,iPhone 17 Pro,948.67,USD,1099.00
+2026-09-10T02:51:19Z,US,iphone-17-pro-max,iPhone 17 Pro Max,1062.00,USD,1199.00
