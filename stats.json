@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-27T16:20:04Z",
-  "observations": 2895,
+  "generated_at": "2026-09-29T08:20:05Z",
+  "observations": 2925,
   "markets": {
     "FR": {
       "observations": 1215,
@@ -10,17 +10,17 @@
       "currency": "EUR"
     },
     "US": {
-      "observations": 705,
+      "observations": 720,
       "models": 15,
       "first_observation": "2026-08-18T22:48:50Z",
-      "last_observation": "2026-09-23T11:50:02Z",
+      "last_observation": "2026-09-29T06:11:35Z",
       "currency": "USD"
     },
     "DE": {
-      "observations": 645,
+      "observations": 660,
       "models": 16,
       "first_observation": "2026-08-30T23:52:08Z",
-      "last_observation": "2026-09-27T14:38:59Z",
+      "last_observation": "2026-09-29T01:01:04Z",
       "currency": "EUR"
     },
     "ES": {
