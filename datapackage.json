@@ -5,8 +5,8 @@
   "title": "Refurbished iPhone prices",
   "description": "Entry prices of refurbished iPhone models, observed twice a day on the French, American, German and Spanish Back Market storefronts and kept as a dated time series.",
   "homepage": "https://www.priceradar.live",
-  "version": "2026-09-30",
-  "created": "2026-09-30T21:06:41Z",
+  "version": "2026-10-01",
+  "created": "2026-10-01T14:08:59Z",
   "licenses": [
     {
       "name": "CC-BY-4.0",
@@ -62,9 +62,29 @@
       "schema": "schema.json"
     },
     {
+      "name": "de-2026-10",
+      "path": "data/de/2026-10.csv",
+      "title": "DE observations, 2026-10",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": "schema.json"
+    },
+    {
       "name": "es-2026-09",
       "path": "data/es/2026-09.csv",
       "title": "ES observations, 2026-09",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": "schema.json"
+    },
+    {
+      "name": "es-2026-10",
+      "path": "data/es/2026-10.csv",
+      "title": "ES observations, 2026-10",
       "profile": "tabular-data-resource",
       "format": "csv",
       "mediatype": "text/csv",
@@ -92,6 +112,16 @@
       "schema": "schema.json"
     },
     {
+      "name": "fr-2026-10",
+      "path": "data/fr/2026-10.csv",
+      "title": "FR observations, 2026-10",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": "schema.json"
+    },
+    {
       "name": "us-2026-08",
       "path": "data/us/2026-08.csv",
       "title": "US observations, 2026-08",
@@ -105,6 +135,16 @@
       "name": "us-2026-09",
       "path": "data/us/2026-09.csv",
       "title": "US observations, 2026-09",
+      "profile": "tabular-data-resource",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "encoding": "utf-8",
+      "schema": "schema.json"
+    },
+    {
+      "name": "us-2026-10",
+      "path": "data/us/2026-10.csv",
+      "title": "US observations, 2026-10",
       "profile": "tabular-data-resource",
       "format": "csv",
       "mediatype": "text/csv",
